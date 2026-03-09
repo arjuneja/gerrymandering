@@ -3,55 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boss Fight Challenge</title>
+    <title>The Impossible Boss</title>
     <style>
         body {
             font-family: 'Courier New', Courier, monospace;
-            background-color: #1a1a1a;
-            color: #00ff00;
+            background-color: #0d0d0d;
+            color: #ff4d4d;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            text-align: center;
+            overflow: hidden;
         }
         #game-container {
-            background: #2a2a2a;
-            padding: 2rem;
-            border: 2px solid #00ff00;
-            border-radius: 10px;
-            width: 80%;
+            background: #1a1a1a;
+            padding: 30px;
+            border: 3px solid #ff0000;
+            width: 90%;
             max-width: 500px;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+            text-align: center;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
         }
         .hidden { display: none; }
         button {
-            background: #00ff00;
-            color: #000;
+            background: #ff0000;
+            color: white;
             border: none;
-            padding: 10px 20px;
-            font-size: 1.1rem;
+            padding: 12px 24px;
+            font-size: 1rem;
             cursor: pointer;
+            margin: 5px;
+            font-family: 'Courier New', Courier, monospace;
             font-weight: bold;
-            margin: 10px;
         }
-        button:hover { background: #00cc00; }
-        .stats { margin-bottom: 20px; font-size: 1.2rem; }
+        button:hover { background: #b30000; }
+        button:disabled { background: #444; cursor: not-allowed; }
+        .stats { font-size: 1.3rem; margin-bottom: 20px; color: #fff; }
         #log {
-            height: 150px;
+            height: 180px;
             overflow-y: auto;
-            border-top: 1px solid #444;
-            padding-top: 10px;
-            font-size: 0.9rem;
-            color: #ddd;
+            background: #000;
+            padding: 10px;
+            margin-top: 15px;
+            text-align: left;
+            font-size: 0.85rem;
+            border: 1px solid #333;
         }
-        .link-box {
-            background: #fff;
-            color: #000;
-            padding: 15px;
+        .win-link {
+            background: gold;
+            color: black;
+            padding: 20px;
+            font-weight: bold;
+            display: block;
             margin-top: 20px;
-            word-break: break-all;
+            text-decoration: none;
         }
     </style>
 </head>
@@ -59,126 +65,124 @@
 
 <div id="game-container">
     <div id="start-screen">
-        <h1>BOSS FIGHT</h1>
-        <p>You only get ONE chance.</p>
-        <button onclick="startGame()">START GAME</button>
+        <h1>UNBEATABLE BOSS</h1>
+        <p>One life. One chance. If you die, you are locked out forever.</p>
+        <button id="start-btn" onclick="startGame()">CHALLENGE BOSS</button>
+        <p id="locked-msg" class="hidden" style="color: #666;">[ACCESS DENIED: PREVIOUS DEFEAT DETECTED]</p>
     </div>
 
     <div id="battle-screen" class="hidden">
         <div class="stats">
-            Player HP: <span id="p-hp">100</span> | Monster HP: <span id="m-hp">100</span>
+            YOU: <span id="p-hp" style="color: #00ff00;">100</span> | BOSS: <span id="m-hp" style="color: #ff0000;">120</span>
         </div>
         <div id="controls">
             <button onclick="playTurn('slash')">Slash (10-20)</button>
-            <button onclick="playTurn('fireball')">Fireball (15-25)</button>
-            <button onclick="playTurn('heal')">Heal (+15)</button>
+            <button onclick="playTurn('fireball')">Fireball (15-25) [80% Acc]</button>
+            <button onclick="playTurn('heal')">Heal (+15 HP)</button>
         </div>
         <div id="log"></div>
     </div>
 
     <div id="end-screen" class="hidden">
-        <h2 id="result-text"></h2>
-        <div id="prize-area" class="hidden">
-            <p>Here is your link:</p>
-            <div class="link-box">
-                <a href="https://docs.google.com/presentation/d/1Z45dJWrDPY7L8e3TPqxQfkhMsR0JmLNcOwx-ubleNnM/edit?usp=sharing" target="_blank">Access Presentation</a>
-            </div>
+        <h1 id="end-title"></h1>
+        <div id="prize" class="hidden">
+            <p>You did the impossible. Here is your reward:</p>
+            <a href="https://docs.google.com/presentation/d/1Z45dJWrDPY7L8e3TPqxQfkhMsR0JmLNcOwx-ubleNnM/edit?usp=sharing" class="win-link">SECRET LINK</a>
         </div>
-        <p id="fail-text" class="hidden">Better luck next time. Access denied.</p>
+        <p id="fail-msg" class="hidden">The link is gone forever. Refreshing won't save you.</p>
     </div>
 </div>
 
 <script>
     let pHp = 100;
-    let mHp = 100;
+    let mHp = 120; // Monster starts with more HP
     const log = document.getElementById('log');
 
-    // Check if user has already played
+    // On Load: Check if player is already banned or won
     window.onload = function() {
-        const gameOver = localStorage.getItem('bossFightStatus');
-        if (gameOver) {
-            showEndScreen(gameOver === 'won');
+        const status = localStorage.getItem('boss_status');
+        if (status === 'lost') {
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('locked-msg').classList.remove('hidden');
+        } else if (status === 'won') {
+            showEnd(true);
         }
     };
 
     function startGame() {
         document.getElementById('start-screen').classList.add('hidden');
         document.getElementById('battle-screen').classList.remove('hidden');
-        addLog("The battle begins! Choose your move.");
+        addLog("A massive shadow looms over you...");
     }
 
-    function addLog(msg) {
-        log.innerHTML += `<p>> ${msg}</p>`;
+    function addLog(msg, color = "#ddd") {
+        log.innerHTML += `<p style="color: ${color}">> ${msg}</p>`;
         log.scrollTop = log.scrollHeight;
     }
 
-    function playTurn(choice) {
-        if (pHp <= 0 || mHp <= 0) return;
-
-        // Player Turn
-        if (choice === 'slash') {
-            let dmg = Math.floor(Math.random() * 11) + 10;
-            mHp -= dmg;
-            addLog(`You slashed for ${dmg} damage!`);
-        } else if (choice === 'fireball') {
-            if (Math.random() < 0.1) {
-                addLog("Fireball MISSED!");
+    function playTurn(move) {
+        // --- PLAYER PHASE ---
+        let pDmg = 0;
+        if (move === 'slash') {
+            pDmg = Math.floor(Math.random() * 11) + 10;
+            mHp -= pDmg;
+            addLog(`You slashed for ${pDmg} damage.`, "#00ff00");
+        } else if (move === 'fireball') {
+            if (Math.random() < 0.20) { // 20% miss chance
+                addLog("Your Fireball sputtered out! MISS!", "#ffae00");
             } else {
-                let dmg = Math.floor(Math.random() * 11) + 15;
-                mHp -= dmg;
-                addLog(`Fireball hit for ${dmg} damage!`);
+                pDmg = Math.floor(Math.random() * 11) + 15;
+                mHp -= pDmg;
+                addLog(`Fireball exploded for ${pDmg} damage!`, "#ffae00");
             }
-        } else if (choice === 'heal') {
+        } else if (move === 'heal') {
             pHp += 15;
-            addLog("You healed 15 HP!");
+            addLog("You used a potion. +15 HP", "#00ff00");
         }
 
-        updateDisplay();
+        updateUI();
+        if (mHp <= 0) return endGame(true);
 
-        // Check if Monster Dead
-        if (mHp <= 0) {
-            endGame(true);
-            return;
-        }
+        // --- MONSTER PHASE ---
+        setTimeout(() => {
+            let mDmg = Math.floor(Math.random() * 11) + 15; // 15-25 damage
+            
+            // 15% Crit Chance
+            if (Math.random() < 0.15) {
+                mDmg *= 2;
+                addLog(`CRITICAL HIT! The boss crushes you for ${mDmg} damage!`, "#ff0000");
+            } else {
+                addLog(`The boss strikes for ${mDmg} damage.`, "#ff4d4d");
+            }
 
-        // Monster Turn
-        let mDmg = Math.floor(Math.random() * 11) + 10;
-        pHp -= mDmg;
-        addLog(`Monster attacks for ${mDmg} damage!`);
-        
-        updateDisplay();
+            pHp -= mDmg;
+            updateUI();
 
-        // Check if Player Dead
-        if (pHp <= 0) {
-            endGame(false);
-        }
+            if (pHp <= 0) endGame(false);
+        }, 500);
     }
 
-    function updateDisplay() {
+    function updateUI() {
         document.getElementById('p-hp').innerText = Math.max(0, pHp);
         document.getElementById('m-hp').innerText = Math.max(0, mHp);
     }
 
     function endGame(win) {
-        const status = win ? 'won' : 'lost';
-        localStorage.setItem('bossFightStatus', status);
-        
-        setTimeout(() => {
-            showEndScreen(win);
-        }, 1000);
+        localStorage.setItem('boss_status', win ? 'won' : 'lost');
+        setTimeout(() => showEnd(win), 800);
     }
 
-    function showEndScreen(win) {
+    function showEnd(win) {
         document.getElementById('start-screen').classList.add('hidden');
         document.getElementById('battle-screen').classList.add('hidden');
         document.getElementById('end-screen').classList.remove('hidden');
 
         if (win) {
-            document.getElementById('result-text').innerText = "YOU DEFEATED THE MONSTER!";
-            document.getElementById('prize-area').classList.remove('hidden');
+            document.getElementById('end-title').innerText = "GOD SLAIN";
+            document.getElementById('prize').classList.remove('hidden');
         } else {
-            document.getElementById('result-text').innerText = "GAME OVER";
-            document.getElementById('fail-text').classList.remove('hidden');
+            document.getElementById('end-title').innerText = "YOU DIED";
+            document.getElementById('fail-msg').classList.remove('hidden');
         }
     }
 </script>
