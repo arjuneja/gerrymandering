@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Impossible Boss</title>
+    <title>Album comes out so soon plz 🌕🌔🌑</title>
     <style>
         body {
             font-family: 'Courier New', Courier, monospace;
@@ -65,15 +65,15 @@
 
 <div id="game-container">
     <div id="start-screen">
-        <h1>UNBEATABLE BOSS</h1>
-        <p>So since you want the album then fight me for it, and u get one chance</p>
-        <button id="start-btn" onclick="startGame()">CHALLENGE BOSS</button>
-        <p id="locked-msg" class="hidden" style="color: #666;">[ACCESS DENIED: PREVIOUS DEFEAT DETECTED]</p>
+        <h1>MY CLANKER</h1>
+        <p>So since you want the album... fight my clanker for it! 👊 Oh - and u get one chance!</p>
+        <button id="start-btn" onclick="startGame()">CHALLENGE THE CLANKER</button>
+        <p id="locked-msg" class="hidden" style="color: #666;">[So ur once chance is over plz like work on ur album stop harrasing me]</p>
     </div>
 
     <div id="battle-screen" class="hidden">
         <div class="stats">
-            YOU: <span id="p-hp" style="color: #00ff00;">100</span> | BOSS: <span id="m-hp" style="color: #ff0000;">120</span>
+            YOU: <span id="p-hp" style="color: #00ff00;">100</span> | CLANKER: <span id="m-hp" style="color: #ff0000;">120</span>
         </div>
         <div id="controls">
             <button onclick="playTurn('slash')">Slash (10-20)</button>
@@ -86,7 +86,7 @@
     <div id="end-screen" class="hidden">
         <h1 id="end-title"></h1>
         <div id="prize" class="hidden">
-            <p>So how in allah did u do that what the hell</p>
+            <p>So how in allah did u do that</p>
             <a href="https://docs.google.com/presentation/d/1Z45dJWrDPY7L8e3TPqxQfkhMsR0JmLNcOwx-ubleNnM/edit?usp=sharing" class="win-link">SECRET LINK</a>
         </div>
         <p id="fail-msg" class="hidden">Lolzies!!!!!</p>
@@ -112,7 +112,7 @@
     function startGame() {
         document.getElementById('start-screen').classList.add('hidden');
         document.getElementById('battle-screen').classList.remove('hidden');
-        addLog("A massive shadow looms over you...");
+        addLog("It says 'BEEP BOOP' so u know u finna get yo shi rocked ");
     }
 
     function addLog(msg, color = "#ddd") {
@@ -150,9 +150,9 @@
             // 15% Crit Chance
             if (Math.random() < 0.15) {
                 mDmg *= 2;
-                addLog(`CRITICAL HIT! The boss crushes you for ${mDmg} damage!`, "#ff0000");
+                addLog(`Critical hit! The clanker pounded you for ${mDmg} damage!`, "#ff0000");
             } else {
-                addLog(`The boss strikes for ${mDmg} damage.`, "#ff4d4d");
+                addLog(`The clanker throws its parts at you for ${mDmg} damage.`, "#ff4d4d");
             }
 
             pHp -= mDmg;
