@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boss Fight Challenge</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #1a1a1a;
+            color: #00ff00;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        #game-container {
+            background: #2a2a2a;
+            padding: 2rem;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+        }
+        .hidden { display: none; }
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px;
+        }
+        button:hover { background: #00cc00; }
+        .stats { margin-bottom: 20px; font-size: 1.2rem; }
+        #log {
+            height: 150px;
+            overflow-y: auto;
+            border-top: 1px solid #444;
+            padding-top: 10px;
+            font-size: 0.9rem;
+            color: #ddd;
+        }
+        .link-box {
+            background: #fff;
+            color: #000;
+            padding: 15px;
+            margin-top: 20px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="start-screen">
+        <h1>BOSS FIGHT</h1>
+        <p>You only get ONE chance.</p>
+        <button onclick="startGame()">START GAME</button>
+    </div>
+
+    <div id="battle-screen" class="hidden">
+        <div class="stats">
+            Player HP: <span id="p-hp">100</span> | Monster HP: <span id="m-hp">100</span>
+        </div>
+        <div id="controls">
+            <button onclick="playTurn('slash')">Slash (10-20)</button>
+            <button onclick="playTurn('fireball')">Fireball (15-25)</button>
+            <button onclick="playTurn('heal')">Heal (+15)</button>
+        </div>
+        <div id="log"></div>
+    </div>
+
+    <div id="end-screen" class="hidden">
+        <h2 id="result-text"></h2>
+        <div id="prize-area" class="hidden">
+            <p>Here is your link:</p>
+            <div class="link-box">
+                <a href="https://docs.google.com/presentation/d/1Z45dJWrDPY7L8e3TPqxQfkhMsR0JmLNcOwx-ubleNnM/edit?usp=sharing" target="_blank">Access Presentation</a>
+            </div>
+        </div>
+        <p id="fail-text" class="hidden">Better luck next time. Access denied.</p>
+    </div>
+</div>
+
+<script>
+    let pHp = 100;
+    let mHp = 100;
+    const log = document.getElementById('log');
+
+    // Check if user has already played
+    window.onload = function() {
+        const gameOver = localStorage.getItem('bossFightStatus');
+        if (gameOver) {
+            showEndScreen(gameOver === 'won');
+        }
+    };
+
+    function startGame() {
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('battle-screen').classList.remove('hidden');
+        addLog("The battle begins! Choose your move.");
+    }
+
+    function addLog(msg) {
+        log.innerHTML += `<p>> ${msg}</p>`;
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function playTurn(choice) {
+        if (pHp <= 0 || mHp <= 0) return;
+
+        // Player Turn
+        if (choice === 'slash') {
+            let dmg = Math.floor(Math.random() * 11) + 10;
+            mHp -= dmg;
+            addLog(`You slashed for ${dmg} damage!`);
+        } else if (choice === 'fireball') {
+            if (Math.random() < 0.1) {
+                addLog("Fireball MISSED!");
+            } else {
+                let dmg = Math.floor(Math.random() * 11) + 15;
+                mHp -= dmg;
+                addLog(`Fireball hit for ${dmg} damage!`);
+            }
+        } else if (choice === 'heal') {
+            pHp += 15;
+            addLog("You healed 15 HP!");
+        }
+
+        updateDisplay();
+
+        // Check if Monster Dead
+        if (mHp <= 0) {
+            endGame(true);
+            return;
+        }
+
+        // Monster Turn
+        let mDmg = Math.floor(Math.random() * 11) + 10;
+        pHp -= mDmg;
+        addLog(`Monster attacks for ${mDmg} damage!`);
+        
+        updateDisplay();
+
+        // Check if Player Dead
+        if (pHp <= 0) {
+            endGame(false);
+        }
+    }
+
+    function updateDisplay() {
+        document.getElementById('p-hp').innerText = Math.max(0, pHp);
+        document.getElementById('m-hp').innerText = Math.max(0, mHp);
+    }
+
+    function endGame(win) {
+        const status = win ? 'won' : 'lost';
+        localStorage.setItem('bossFightStatus', status);
+        
+        setTimeout(() => {
+            showEndScreen(win);
+        }, 1000);
+    }
+
+    function showEndScreen(win) {
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('battle-screen').classList.add('hidden');
+        document.getElementById('end-screen').classList.remove('hidden');
+
+        if (win) {
+            document.getElementById('result-text').innerText = "YOU DEFEATED THE MONSTER!";
+            document.getElementById('prize-area').classList.remove('hidden');
+        } else {
+            document.getElementById('result-text').innerText = "GAME OVER";
+            document.getElementById('fail-text').classList.remove('hidden');
+        }
+    }
+</script>
+
+</body>
+</html>
